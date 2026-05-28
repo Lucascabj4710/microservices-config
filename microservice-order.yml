@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: microservice-order
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: "jdbc:mysql://${MYSQL_HOST:localhost}:3306/order_db"
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQLDialect
+  config:
+    import: optional:configserver:http://localhost:8888
+
+
+# server:
+ # port: 8081
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${URL_EUREKA_SERVER}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, refresh, circuitbreakers, ratelimiters
+
+
+resilience4j:
+
+  circuitbreaker:
+    instances:
+      microservice-product:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+  retry:
+    instances:
+      microservice-product:
+        max-attempts: 3
+        wait-duration: 2s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
